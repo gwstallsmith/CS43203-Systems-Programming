@@ -1,0 +1,27 @@
+/* CS4-53203: Systems Programming \
+/* Name: Garrett Stallsmith
+/* Date: 1/21/2024
+/* AssignmentWarm-up.txt\
+\
+\
+\
+/* Template for assignments. */\
+\
+\
+\
+/* Add your work for this assignment here\
+}
+
+[1]
+[2]
+[3]
+[4]
+[5]
+[6]
+[7]
+[8]
+[9]
+[10]
+[11]
+	Part 1
+	Part 2
