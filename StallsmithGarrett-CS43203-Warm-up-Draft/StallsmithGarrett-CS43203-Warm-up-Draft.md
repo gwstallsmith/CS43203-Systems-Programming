@@ -24,10 +24,10 @@ In funct p2 is passed by value rather than reference. p2 is then assigned  as an
 **[3]** Explain the purpose of the following Unix commands: ls, cat, rm, cp, mv, mkdir, cc
 
 * ls
-    * ls lists the non-hidden files within a directory
+    * ls lists the files within a directory
 * cat
     * cat concatenates files together
-    * cat << can also be used to print the contents of a file to the output stream
+    * cat can also be used to print the contents of a file to the output stream (usually shell)
 * rm
     * rm permanently removes data (files, directories, etc.)
 * cp
@@ -45,14 +45,69 @@ In funct p2 is passed by value rather than reference. p2 is then assigned  as an
 
 **[4]** Using your favorite editor, create a small text file. Use cat to create another file consisting of five repetitions of this small text file. Use wc to count the number of characters and words in the original file and in the one you made from it. Explain the result. Create a subdirectory and move the two files into it.
 
+```
+$ cat Q4SmallFile.txt Q4SmallFile.txt Q4SmallFile.txt Q4SmallFile.txt > repeated.txt
+$ wc Q4SmallFile.txt 
+ 0  8 37 Q4SmallFile.txt
+$ wc repeated.txt 
+  0  29 148 repeated.txt
+$ mkdir Sub-Dir
+$ mv Q4SmallFile.txt Sub-Dir/
+$ mv repeated.txt Sub-Dir/
+
+```
+
+cat concatenated the data of Q4SmallFile.txt four times and stored in a text file called repeated.txt
+
+repeated.txt stores the following:
+```
+Small text file with some data in it.Small text file with some data in it.Small text file with some data in it.Small text file with some data in it.
+```
+
 <hr>
 
 **[5]** Write, compile, and execute a C program that prints a welcoming message of your choice.
 
+```
+#include <stdio.h>
+
+int main() {
+    printf("Welcome to CS43203 - Systems Programming.\n");
+    return 0;
+}
+```
+```
+$ g++ -o WelcomeMessage.out welcomeMessage.c 
+$ ./WelcomeMessage.out 
+Welcome to CS43203 - Systems Programming.
+```
 <hr>
 
 **[6]** Write, compile, and execute a C program that prints its arguments.
+```
+#include <stdio.h>
 
+int main(int argc, char* argv[]) {
+    for (int i = 0; i < argc; i++) {
+        printf("%s\n", argv[i]);
+    }
+    
+    return 0;
+}
+```
+```
+$ g++ -o PrintArgs.out printArguments.c
+$ ./PrintArgs.out I am arguing with the command line
+./PrintArgs.out
+I
+am
+arguing
+with
+the
+command
+line
+
+```
 <hr>
 
 **[7]** Using getchar() write a program that counts the number of words, lines, and characters in its input.
@@ -60,6 +115,35 @@ In funct p2 is passed by value rather than reference. p2 is then assigned  as an
 <hr>
 
 **[8]** Create a file containing a C function that prints the message "hello, world". Create a separate file containing the main program which calls this function. Compile and link the resulting program, calling it hw.
+```
+#ifndef HW_H
+#define HW_H
+
+void helloWorld();
+
+#endif
+```
+```
+#include "hw.h"
+#include <stdio.h>
+
+void helloWorld() {
+    printf("hello, world\n");
+}
+```
+```
+#include "hw.h"
+
+int main() {
+    helloWorld();
+    return 0;
+}
+```
+```
+$ g++ mainhw.c hw.c -o HW.out
+$ ./HW.out 
+hello, world
+```
 
 <hr>
 
