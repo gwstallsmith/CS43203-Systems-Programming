@@ -19,6 +19,53 @@ In funct p2 is passed by value rather than reference. p2 is then assigned  as an
 
 **[2]** Write a C program that reads a text file and prints out any words that begins with a user given string. the filename should be given at the command line as an argument. the program should prompt the user for the search string. the program should then read the file one word at a time and front out the word if its first N bytes match the search string, where N is the length of the search string.
 
+```
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    FILE *filePointer;
+    filePointer = fopen("beeMovieScript.txt", "r");
+
+    if(!filePointer) {
+        printf("File pointer failure\n");
+        return 1;
+    }
+
+    char userString[128];
+
+    printf("Enter a string to search for: ");
+
+    scanf("%99[^\n]", userString);
+
+    int stringLen = strlen(userString);
+
+    printf("String Length in bytes: %d\n", stringLen);
+
+    printf("Searching for: %s\n", userString);
+
+
+    char word[stringLen];
+
+    int printFlag;
+
+    while(fscanf(filePointer, "%99s", word) == 1) { 
+        printFlag = 1;
+        for(int i = 0; i < stringLen; i++) {
+            if(word[i] != userString[i]) {
+                printFlag = 0;
+            }
+        }
+        if(printFlag) {
+            printf("%s\n", word);
+        }
+    }
+
+    fclose(filePointer);
+    return 0;
+}
+```
+
 <hr>
 
 **[3]** Explain the purpose of the following Unix commands: ls, cat, rm, cp, mv, mkdir, cc
@@ -112,6 +159,62 @@ line
 
 **[7]** Using getchar() write a program that counts the number of words, lines, and characters in its input.
 
+```
+#include <stdio.h>
+#include <unistd.h>
+
+int main(int argc, char* argv[]) {
+    if(argc != 2) {
+        perror("Incorrect number of arguments\n");
+        return 1;
+    }
+
+    printf("Reading file: %s\n", argv[1]);
+
+    FILE *filePointer;
+    filePointer = fopen(argv[1], "r");
+
+    if(!filePointer) {
+        printf("File pointer failure\n");
+        return 1;
+    }
+
+    int standardInput = dup(fileno(stdin));
+    dup2(fileno(filePointer), fileno(stdin));
+
+    int character;
+
+    int charCount = 0;
+    int wordCount = 0;
+    int lineCount = 0;
+
+    while((character = getchar()) != EOF) {
+        //printf("%c", character);
+
+        charCount++;
+        
+        if(character == 32) {
+            wordCount++;
+        }
+        
+        if(character == 10) {
+            lineCount++;
+        }
+
+    }
+
+    printf("\nCharacter count: %d\n", charCount);
+    printf("Word count: %d\n", wordCount);
+    printf("Line count: %d\n", lineCount);
+
+
+    dup2(standardInput, fileno(stdin));
+    fclose(filePointer);
+
+
+    return 0;
+}
+```
 <hr>
 
 **[8]** Create a file containing a C function that prints the message "hello, world". Create a separate file containing the main program which calls this function. Compile and link the resulting program, calling it hw.
