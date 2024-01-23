@@ -1,4 +1,4 @@
-**X [1]** In the following code, the first printf() reached produces the output “14” but the second printf() can cause a bus error or segmentation fault. Why? 
+**[1]** In the following code, the first printf() reached produces the output “14” but the second printf() can cause a bus error or segmentation fault. Why? 
 
 ```
 main () {
@@ -17,16 +17,17 @@ In funct p2 is passed by value rather than reference. p2 is then assigned  as an
 
 <hr>
 
-**X [2]** Write a C program that reads a text file and prints out any words that begins with a user given string. the filename should be given at the command line as an argument. the program should prompt the user for the search string. the program should then read the file one word at a time and front out the word if its first N bytes match the search string, where N is the length of the search string.
+**[2]** Write a C program that reads a text file and prints out any words that begins with a user given string. the filename should be given at the command line as an argument. the program should prompt the user for the search string. the program should then read the file one word at a time and front out the word if its first N bytes match the search string, where N is the length of the search string.
 
 ```
 Code: printSearchString.c
 Executable: PrintSearchString.out
+Usage: ./PrintSearchString.out fileToSearch.txt userSearchString
 ```
 
 <hr>
 
-**X [3]** Explain the purpose of the following Unix commands: ls, cat, rm, cp, mv, mkdir, cc
+**[3]** Explain the purpose of the following Unicommands: ls, cat, rm, cp, mv, mkdir, cc
 
 * ls
     * ls lists the files within a directory
@@ -48,7 +49,7 @@ Executable: PrintSearchString.out
 
 <hr>
 
-**X [4]** Using your favorite editor, create a small text file. Use cat to create another file consisting of five repetitions of this small text file. Use wc to count the number of characters and words in the original file and in the one you made from it. Explain the result. Create a subdirectory and move the two files into it.
+**[4]** Using your favorite editor, create a small text file. Use cat to create another file consisting of five repetitions of this small text file. Use wc to count the number of characters and words in the original file and in the one you made from it. Explain the result. Create a subdirectory and move the two files into it.
 
 ```
 $ cat Q4SmallFile.txt Q4SmallFile.txt Q4SmallFile.txt Q4SmallFile.txt > repeated.txt
@@ -71,44 +72,48 @@ Small text file with some data in it.Small text file with some data in it.Small 
 
 <hr>
 
-**X [5]** Write, compile, and execute a C program that prints a welcoming message of your choice.
+**[5]** Write, compile, and execute a C program that prints a welcoming message of your choice.
 
 ```
 Code: welcomeMessage.c
 Executable: WelcomeMessage.out
+Usage: ./WelcomeMessage.out
 ```
 <hr>
 
-**X [6]** Write, compile, and execute a C program that prints its arguments.
+**[6]** Write, compile, and execute a C program that prints its arguments.
+
 ```
 Code: printArguments.c
 Executable: PrintArguments.out
+Usage: ./PrintAguments.out argToPrint1, argToPrintN
 ```
 <hr>
 
-**X [7]** Using getchar() write a program that counts the number of words, lines, and characters in its input.
+**[7]** Using getchar() write a program that counts the number of words, lines, and characters in its input.
 
 ```
 Code: getCharPrint.c
 Executable: GetCharPrint.out
-
+Usage: ./GetCharPrint.out fileToSearch.txt
 ```
 <hr>
 
-**X [8]** Create a file containing a C function that prints the message "hello, world". Create a separate file containing the main program which calls this function. Compile and link the resulting program, calling it hw.
+**[8]** Create a file containing a C function that prints the message "hello, world". Create a separate file containing the main program which calls this function. Compile and link the resulting program, calling it hw.
 
 ```
 Code: mainhw.c, hw.c, hw.h
 Executable: HW.out
+Usage: ./HW.out
 ```
 
 <hr>
 
-**X [9]** Look up the entries for the following topics in your system’s manual; the cat command, the printf function, and the write system call.
+**[9]** Look up the entries for the following topics in your system’s manual; the cat command, the printf function, and the write system call.
 
 <hr>
 
-**X [10]** Write a function that computes some basic statistics for a list of numbers and stores those results in parts of a struct. In particular, given this definition:
+**[10]** Write a function that computes some basic statistics for a list of numbers and stores those results in parts of a struct. In particular, given this definition:
 ```
 struct numlist {
     float *list;    /* points to list of numbers */
@@ -125,19 +130,21 @@ write a function compute_stats(struct numlist *listptr) that takes as an argumen
 ``` 
 Code: structStats.c
 Executable: StructStats.out
+Usage: ./StructStats.out
 ```
 
 <hr>
 
 **[11]**
-* **X Part 1** - Write a program that prints a range of lines from a text file. The program should take command line arguments of the form:
+* **Part 1** - Write a program that prints a range of lines from a text file. The program should take command line arguments of the form:
 
 ```
 Code: printFromRange.c
 Executable: PrintFromRange.out
+Usage: ./PrintFromRange.out fileToSearch.txt leftBound rightBound
 ```
 
-* **X Part 2** - Write a program called last10 that prints the last ten lines of a text file. The pro- gram can be used from the command line with:
+* **Part 2** - Write a program called last10 that prints the last ten lines of a text file. The pro- gram can be used from the command line with:
     * last10 filename or
     * last10
     * If there is no filename, last10 processes standard input. 
@@ -145,5 +152,8 @@ Executable: PrintFromRange.out
 ```
 Code: last10.c
 Executable: Last10.out
+Usage: ./Last10.out fileToSearch.txt
+        or
+       ./Last10.out
 ```
 
