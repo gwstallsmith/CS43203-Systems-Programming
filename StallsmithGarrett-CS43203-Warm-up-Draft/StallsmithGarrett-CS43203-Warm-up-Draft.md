@@ -20,50 +20,8 @@ In funct p2 is passed by value rather than reference. p2 is then assigned  as an
 **X [2]** Write a C program that reads a text file and prints out any words that begins with a user given string. the filename should be given at the command line as an argument. the program should prompt the user for the search string. the program should then read the file one word at a time and front out the word if its first N bytes match the search string, where N is the length of the search string.
 
 ```
-#include <stdio.h>
-#include <string.h>
-
-int main() {
-    FILE *filePointer;
-    filePointer = fopen("beeMovieScript.txt", "r");
-
-    if(!filePointer) {
-        printf("File pointer failure\n");
-        return 1;
-    }
-
-    char userString[128];
-
-    printf("Enter a string to search for: ");
-
-    scanf("%99[^\n]", userString);
-
-    int stringLen = strlen(userString);
-
-    printf("String Length in bytes: %d\n", stringLen);
-
-    printf("Searching for: %s\n", userString);
-
-
-    char word[stringLen];
-
-    int printFlag;
-
-    while(fscanf(filePointer, "%99s", word) == 1) { 
-        printFlag = 1;
-        for(int i = 0; i < stringLen; i++) {
-            if(word[i] != userString[i]) {
-                printFlag = 0;
-            }
-        }
-        if(printFlag) {
-            printf("%s\n", word);
-        }
-    }
-
-    fclose(filePointer);
-    return 0;
-}
+Code: printSearchString.c
+Executable: PrintSearchString.out
 ```
 
 <hr>
@@ -116,136 +74,32 @@ Small text file with some data in it.Small text file with some data in it.Small 
 **X [5]** Write, compile, and execute a C program that prints a welcoming message of your choice.
 
 ```
-#include <stdio.h>
-
-int main() {
-    printf("Welcome to CS43203 - Systems Programming.\n");
-    return 0;
-}
-```
-```
-$ g++ -o WelcomeMessage.out welcomeMessage.c 
-$ ./WelcomeMessage.out 
-Welcome to CS43203 - Systems Programming.
+Code: welcomeMessage.c
+Executable: WelcomeMessage.out
 ```
 <hr>
 
 **X [6]** Write, compile, and execute a C program that prints its arguments.
 ```
-#include <stdio.h>
-
-int main(int argc, char* argv[]) {
-    for (int i = 0; i < argc; i++) {
-        printf("%s\n", argv[i]);
-    }
-    
-    return 0;
-}
-```
-```
-$ g++ -o PrintArgs.out printArguments.c
-$ ./PrintArgs.out I am arguing with the command line
-./PrintArgs.out
-I
-am
-arguing
-with
-the
-command
-line
-
+Code: printArguments.c
+Executable: PrintArguments.out
 ```
 <hr>
 
 **X [7]** Using getchar() write a program that counts the number of words, lines, and characters in its input.
 
 ```
-#include <stdio.h>
-#include <unistd.h>
+Code: getCharPrint.c
+Executable: GetCharPrint.out
 
-int main(int argc, char* argv[]) {
-    if(argc != 2) {
-        perror("Incorrect number of arguments\n");
-        return 1;
-    }
-
-    printf("Reading file: %s\n", argv[1]);
-
-    FILE *filePointer;
-    filePointer = fopen(argv[1], "r");
-
-    if(!filePointer) {
-        printf("File pointer failure\n");
-        return 1;
-    }
-
-    int standardInput = dup(fileno(stdin));
-    dup2(fileno(filePointer), fileno(stdin));
-
-    int character;
-
-    int charCount = 0;
-    int wordCount = 0;
-    int lineCount = 0;
-
-    while((character = getchar()) != EOF) {
-        //printf("%c", character);
-
-        charCount++;
-        
-        if(character == 32) {
-            wordCount++;
-        }
-        
-        if(character == 10) {
-            lineCount++;
-        }
-
-    }
-
-    printf("\nCharacter count: %d\n", charCount);
-    printf("Word count: %d\n", wordCount);
-    printf("Line count: %d\n", lineCount);
-
-
-    dup2(standardInput, fileno(stdin));
-    fclose(filePointer);
-
-
-    return 0;
-}
 ```
 <hr>
 
 **X [8]** Create a file containing a C function that prints the message "hello, world". Create a separate file containing the main program which calls this function. Compile and link the resulting program, calling it hw.
-```
-#ifndef HW_H
-#define HW_H
 
-void helloWorld();
-
-#endif
 ```
-```
-#include "hw.h"
-#include <stdio.h>
-
-void helloWorld() {
-    printf("hello, world\n");
-}
-```
-```
-#include "hw.h"
-
-int main() {
-    helloWorld();
-    return 0;
-}
-```
-```
-$ g++ mainhw.c hw.c -o HW.out
-$ ./HW.out 
-hello, world
+Code: mainhw.c, hw.c, hw.h
+Executable: HW.out
 ```
 
 <hr>
@@ -268,12 +122,28 @@ struct numlist {
 
 write a function compute_stats(struct numlist *listptr) that takes as an argument a pointer to a struct numlist with list and len already initialized and computes and fills in the other three members
 
+``` 
+Code: structStats.c
+Executable: StructStats.out
+```
+
 <hr>
 
 **[11]**
 * **X Part 1** - Write a program that prints a range of lines from a text file. The program should take command line arguments of the form:
+
+```
+Code: printFromRange.c
+Executable: PrintFromRange.out
+```
+
 * **X Part 2** - Write a program called last10 that prints the last ten lines of a text file. The pro- gram can be used from the command line with:
     * last10 filename or
     * last10
     * If there is no filename, last10 processes standard input. 
+
+```
+Code: last10.c
+Executable: Last10.out
+```
 
