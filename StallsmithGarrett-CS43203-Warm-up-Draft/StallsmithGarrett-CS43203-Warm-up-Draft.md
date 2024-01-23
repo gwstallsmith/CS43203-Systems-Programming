@@ -272,7 +272,7 @@ write a function compute_stats(struct numlist *listptr) that takes as an argumen
 
 **[11]**
 * **X Part 1** - Write a program that prints a range of lines from a text file. The program should take command line arguments of the form:
-* **Part 2** - Write a program called last10 that prints the last ten lines of a text file. The pro- gram can be used from the command line with:
+* **X Part 2** - Write a program called last10 that prints the last ten lines of a text file. The pro- gram can be used from the command line with:
     * last10 filename or
     * last10
     * If there is no filename, last10 processes standard input. 

@@ -10,7 +10,8 @@
 #include <string.h>
 
 int main(int argc, char* argv[]) {
-    if(argc != 4) {
+    // If not given a file to read exit
+    if(argc != 2) {
         perror("Incorrect number of arguments\n");
         return 1;
     }
@@ -25,29 +26,45 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Define user range
-    int leftBound = atoi(argv[2]);
-    int rightBound = atoi(argv[3]);
-    int lineNumber = 1;
+    int rightBound = 1;
+    int bufferChar;
 
-    fseek(filePointer, 0, SEEK_END);
+    // Calculate the (inclusive) right bound by incrementing every time a new line character is encountered
+    while((bufferChar = fgetc(filePointer)) != EOF) {
+        if(bufferChar == '\n') {
+            rightBound++;
+        }
+    } 
 
+    printf("File has %i lines\n", rightBound);
+
+    // Subtract by ten to get left bound. Once we know right bound we know where the last ten line begin and end
+    int leftBound = rightBound - 10;
+    int loopCount = 0;
+    // Need a character array to actually read each line
     char buffer[256];
 
-    while (fgets(buffer, sizeof(buffer), filePointer) != NULL) {
-        if (lineNumber >= leftBound && lineNumber <= rightBound) {
-            printf("%i\t", lineNumber);
+    // Make file pointer point to the start of the file
+    rewind(filePointer);
+
+    // Get each line and cound the loop
+    // If the loop count is between our left and right bounds, print the line (along with the line number for good measure)
+    while(fgets(buffer, sizeof(buffer), filePointer) != NULL) {
+        if (loopCount >= leftBound && loopCount <= rightBound) {
+            printf("%i\t", loopCount);
             printf("%s", buffer);
         }
 
-        lineNumber++;
+        loopCount++;
 
         // Stop reading lines if we have reached the end of the range
-        if (lineNumber > rightBound) {
+        if (loopCount > rightBound) {
             break;
         }
+
     }
 
+    // Close the file gracefully
     fclose(filePointer);
     return 0;
 }

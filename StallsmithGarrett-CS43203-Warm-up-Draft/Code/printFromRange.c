@@ -10,6 +10,8 @@
 #include <string.h>
 
 int main(int argc, char* argv[]) {
+    // We expect a file, a left bound, and a right bound
+    // If we do not get four arguments the program may not work correctly
     if(argc != 4) {
         perror("Incorrect number of arguments\n");
         return 1;
@@ -30,10 +32,10 @@ int main(int argc, char* argv[]) {
     int rightBound = atoi(argv[3]);
     int lineNumber = 1;
 
-    rewind(filePointer);
-
+    // Need character array to store each line
     char buffer[256];
 
+    // If line is within user specified range, print (along with the line number for good measure)
     while (fgets(buffer, sizeof(buffer), filePointer) != NULL) {
         if (lineNumber >= leftBound && lineNumber <= rightBound) {
             printf("%i\t", lineNumber);
@@ -48,6 +50,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Close file gracefully
     fclose(filePointer);
     return 0;
 }

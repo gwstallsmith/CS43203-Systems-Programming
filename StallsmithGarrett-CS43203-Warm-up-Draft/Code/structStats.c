@@ -17,6 +17,8 @@ struct numlist {
 };
 
 void compute_stats(struct numlist *listptr) {
+    // Set min and max to first item in list as we are searching linearly
+    // Will use A/B comparisons to find largest / smallest
     listptr->min = listptr->list[0];
     listptr->max = listptr->list[0];
 
@@ -45,11 +47,14 @@ void print_stats(struct numlist *listptr) {
 }
 
 int main() {
+    // Need to allocate memory for the structure    rewind(filePointer);
+
     struct numlist* nl = (struct numlist*)malloc(sizeof(struct numlist));;
 
+    // Arbitrary float list
     float floatList[] = {3.14, 5.01, 2.33, 10.2, 1.2, 6.12, -9.99, 0.00};
 
-    nl->len = sizeof(floatList) / 4;    // Four bytes per float
+    nl->len = sizeof(floatList) / 4;    // Four bytes per float. Lets us calculate the amount of floats in the list
     nl->list = floatList;
 
     compute_stats(nl);
