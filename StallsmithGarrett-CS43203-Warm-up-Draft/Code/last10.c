@@ -10,16 +10,19 @@
 #include <string.h>
 
 int main(int argc, char* argv[]) {
-    // If not given a file to read exit
+    FILE *filePointer;
+
+    // If not given a file to read default to beeMovieScript.txt
     if(argc != 2) {
-        perror("Incorrect number of arguments\n");
-        return 1;
+        filePointer = fopen("beeMovieScript.txt", "r");
+        printf("Searching file: %s\n\n", "beeMovieScript.txt");
+
+    } else {
+        filePointer = fopen(argv[1], "r");
+        printf("Searching file: %s\n\n", argv[1]);
+
     }
 
-    printf("Searching file: %s\n\n", argv[1]);
-
-    FILE *filePointer;
-    filePointer = fopen(argv[1], "r");
 
     if(!filePointer) {
         printf("File pointer failure\n");
