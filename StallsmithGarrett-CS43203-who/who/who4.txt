@@ -1,0 +1,5 @@
+/* who4.c - who with buffered reads
+*  Identity crisis: The manual page for who lists who   am   i as an acceptable *usage of     *   the command. It also lists whoami. Modify who2.c so it supports the who am i *usage. 
+*   Experiment with the command whom and read the manage. How does it differ from who    
+*   am i ? write a program that works like whoami.
+*/
