@@ -28,8 +28,15 @@ Without this restritcion, each time a user opens a new terminal the program will
 void dump_utmp_file(char* filename, int argc, char* argv[]);
 void show_utmp_record(struct utmp* record);
 char *get_utmp_type_name(int type_number);
+void assignSnapshot(struct utmp* snapshot);
+
 
 int main(int argc, char* argv[]) {
+    int sleepTimer = atoi(argv[1]);
+
+    if(atoi(argv[1]) <= 0) {
+        sleepTimer = 300;
+    }
     if(argc < 2) {
         perror("Provide time per scan and user names you would like to scan");
         return 1;
@@ -43,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     for(int i = 1; i < argc; i++) {
         if(i == 1) {
-            printf("%s seconds\n\nFor Users:\n", argv[i]);
+            printf("%i seconds\n\nFor Users:\n", sleepTimer);
         } else {
             printf("%s\n", argv[i]);
         }
@@ -52,12 +59,13 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    int sleepTimer = atoi(argv[1]);
     //printf("%i", sleepTimer);
 
     while(1) {
         dump_utmp_file(UTMP_FILE, argc, argv);
         sleep(sleepTimer);
+        struct utmp* snapshot;
+
     }
 
 
@@ -98,7 +106,7 @@ void dump_utmp_file(char *filename, int argc, char* argv[]) {
             }
             if(strEqualFlag) {
                 printf("Found user: \"%-8.8s\" in utmp file\n", utmp_record.ut_user);
-                show_utmp_record(&utmp_record);
+                show_utmp_record(&utmp_record); 
             }
         }
         
@@ -125,4 +133,8 @@ char *utmp_type_names[] = {"EMPTY", "RUN_LVL", "BOOT_TIME", "OLD_TIME",
 
 char *get_utmp_type_name(int type_number) {
     return utmp_type_names[type_number];
+}
+
+void compareSnapshot(struct utmp* snapshot, struct utmp* record) {
+
 }
