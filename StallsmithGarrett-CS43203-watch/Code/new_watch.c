@@ -1,77 +1,59 @@
-/* 
-CS4-53203: Systems Programming
-Name: Garrett Stallsmith
-Date: 1/21/2024
-AssignmentWarm-up.txt
-*/
-
-
 #include	<stdio.h>
-#include    <stdlib.h>
+#include	<stdlib.h>
 #include	<fcntl.h>
 #include	<sys/types.h>
 #include	<utmp.h>
-#include    <unistd.h>
-#include    <string.h>
+#include	<unistd.h>
+#include	<string.h>
 
-/*
-Every five minutes (300 seconds) the program wakes up and checkes the utemp file
+#define MAX_USERS 100
 
-Compare the list of active users it finds to the list of active users if found last time. Need to make data structure to hold list of active users
+// Structure to store user login information
+struct UserLogin {
+    char username[UT_NAMESIZE];
+    int logged_in;
+};
 
-Program reports when a user goesf rom one or more logins to no logins
-Without this restritcion, each time a user opens a new terminal the program will notify
-
-1.) Take one or more lognames as command line arguments. Also takes an argument for time.
-
-*/
+// Function prototypes
 void dump_utmp_file(char* filename, int argc, char* argv[]);
 void show_utmp_record(struct utmp* record);
 char *get_utmp_type_name(int type_number);
 void assign_snapshot(char *filename, struct utmp* snapshot);
-
+int find_user(struct UserLogin users[], int count, char *username);
 
 int main(int argc, char* argv[]) {
     int sleep_timer = atoi(argv[1]);
 
-    if(atoi(argv[1]) <= 0) {
+    if (atoi(argv[1]) <= 0) {
         sleep_timer = 300;
     }
-    if(argc < 2) {
+    if (argc < 2) {
         perror("Provide time per scan and user names you would like to scan");
         return 1;
     }
-    if(argc < 3) {
+    if (argc < 3) {
         perror("Provide user names you would like to scan");
         return 1;
     }
 
-    printf("Scaning for:\n");
+    printf("Scanning for:\n");
 
-    for(int i = 1; i < argc; i++) {
-        if(i == 1) {
+    for (int i = 1; i < argc; i++) {
+        if (i == 1) {
             printf("%i seconds\n\nFor Users:\n", sleep_timer);
         } else {
             printf("%s\n", argv[i]);
         }
-        if(i == argc - 1) {
+        if (i == argc - 1) {
             printf("\n");
         }
     }
 
-
-
-
-
-
-    while(1) {
+    while (1) {
         dump_utmp_file(UTMP_FILE, argc, argv);
         printf("...\n");
         sleep(sleep_timer);
-
     }
-
-
 
     return 0;
 }
@@ -91,45 +73,49 @@ void dump_utmp_file(char *filename, int argc, char* argv[]) {
         return;
     }
 
+    struct UserLogin users[MAX_USERS];
+    memset(users, 0, sizeof(users));
 
-
-    int string_equal_flag;
+    int num_users = 0;
 
     while (read(file_descriptor, &utmp_record, sizeof(utmp_record)) == sizeof(utmp_record)) {
-        string_equal_flag = 1;
-        for(int i = 2; i < argc; i++) {
-            //printf("%li\n", strlen(argv[i]));
-
-            for(int j = 0; j < strlen(argv[i]); j++){
-                //printf("%d = %d\n", utmp_record.ut_user[j], argv[i][j]);
-
-                if(utmp_record.ut_user[j] != argv[i][j]) {
-                    string_equal_flag = 0;
-                    //printf("\n");
-                    break;
+        for (int i = 2; i < argc; i++) {
+            if (strncmp(utmp_record.ut_user, argv[i], UT_NAMESIZE) == 0) {
+                int user_index = find_user(users, num_users, utmp_record.ut_user);
+                if (user_index == -1) {
+                    // New user found
+                    if (num_users < MAX_USERS) {
+                        strncpy(users[num_users].username, utmp_record.ut_user, UT_NAMESIZE);
+                        users[num_users].logged_in = 1;
+                        num_users++;
+                        printf("User \"%s\" is logged in.\n", utmp_record.ut_user);
+                    }
+                } else {
+                    // User already exists, check if they've logged out
+                    if (utmp_record.ut_type == DEAD_PROCESS) {
+                        users[user_index].logged_in = 0;
+                        printf("User \"%s\" logged out.\n", utmp_record.ut_user);
+                    }
                 }
             }
-            if(string_equal_flag) {
-                printf("Found user: \"%-8.8s\" in utmp file\n", utmp_record.ut_user);
-                show_utmp_record(&utmp_record); 
-            }
         }
-        
-
     }
 
-
     close(file_descriptor);
-    
+}
+
+int find_user(struct UserLogin users[], int count, char *username) {
+    for (int i = 0; i < count; i++) {
+        if (strncmp(users[i].username, username, UT_NAMESIZE) == 0) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void show_utmp_record(struct utmp* record) {
     printf("%-8.8s", record->ut_user);
-    //printf("%-12.12s ", record->ut_line);
-    //printf("%6d ", record->ut_pid);
     printf("%4d %-12.12s ", record->ut_type, get_utmp_type_name(record->ut_type));
-    //printf("%12d ", record->ut_time);
-    //printf("%s ", record->ut_host);
     putchar('\n');
 }
 
@@ -137,8 +123,6 @@ char *utmp_type_names[] = {"EMPTY", "RUN_LVL", "BOOT_TIME", "OLD_TIME",
                             "NEW_TIME", "INIT_PROCESS", "LOGIN_PROCESS",
                             "USER_PROCESS", "DEAD_PROCESS", "ACCOUNTING"};
 
-
 char *get_utmp_type_name(int type_number) {
     return utmp_type_names[type_number];
 }
-
