@@ -1,144 +1,103 @@
-/* 
-CS4-53203: Systems Programming
-Name: Garrett Stallsmith
-Date: 1/21/2024
-AssignmentWarm-up.txt
-*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <utmp.h>
+#include <string.h>
+#include <time.h>
 
+#define DEFAULT_INTERVAL 2 // 5 minutes in seconds
 
-#include	<stdio.h>
-#include    <stdlib.h>
-#include	<fcntl.h>
-#include	<sys/types.h>
-#include	<utmp.h>
-#include    <unistd.h>
-#include    <string.h>
-
-/*
-Every five minutes (300 seconds) the program wakes up and checkes the utemp file
-
-Compare the list of active users it finds to the list of active users if found last time. Need to make data structure to hold list of active users
-
-Program reports when a user goesf rom one or more logins to no logins
-Without this restritcion, each time a user opens a new terminal the program will notify
-
-1.) Take one or more lognames as command line arguments. Also takes an argument for time.
-
-*/
-void dump_utmp_file(char* filename, int argc, char* argv[]);
-void show_utmp_record(struct utmp* record);
-char *get_utmp_type_name(int type_number);
-void assign_snapshot(char *filename, struct utmp* snapshot);
-
-
-int main(int argc, char* argv[]) {
-    int sleep_timer = atoi(argv[1]);
-
-    if(atoi(argv[1]) <= 0) {
-        sleep_timer = 300;
-    }
-    if(argc < 2) {
-        perror("Provide time per scan and user names you would like to scan");
-        return 1;
-    }
-    if(argc < 3) {
-        perror("Provide user names you would like to scan");
-        return 1;
-    }
-
-    printf("Scaning for:\n");
-
-    for(int i = 1; i < argc; i++) {
-        if(i == 1) {
-            printf("%i seconds\n\nFor Users:\n", sleep_timer);
-        } else {
-            printf("%s\n", argv[i]);
+// Function to check if a user is in the list of watched users
+int is_user_watched(char *user, char **watched_users, int num_users) {
+    for (int i = 0; i < num_users; i++) {           // Loop through the watched users list
+        if (strcmp(user, watched_users[i]) == 0) {  // Compare the current user with the watched users
+            return 1;                               // Return 1 if the user is found in the list
         }
-        if(i == argc - 1) {
-            printf("\n");
+    }
+    return 0;                                       // Return 0 if the user is not found in the list
+}
+
+// Function to compare the current and previous user lists and print changes
+void check_user_changes(char **prev_users, int prev_count, char **curr_users, int curr_count) {
+    for (int i = 0; i < prev_count; i++) {                                  // Loop through the previous user list
+        if (!is_user_watched(prev_users[i], curr_users, curr_count)) {      // Check if the user logged out
+            printf("%s logged out\n", prev_users[i]);                       // Print the user who logged out
+        }
+    }
+    for (int i = 0; i < curr_count; i++) {                                  // Loop through the current user list
+        if (!is_user_watched(curr_users[i], prev_users, prev_count)) {      // Check if the user logged in
+            printf("%s logged in\n", curr_users[i]);                        // Print the user who logged in
+        }
+    }
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {                                                                 // Check if the number of command-line arguments is less than 2
+        fprintf(stderr, "Usage: %s <user1> <user2> ... [interval]\n", argv[0]);     // Print usage message to stderr
+        return 1;                                                                   // Return 1 to indicate an error
+    }
+
+    char **watched_users = &argv[1];    // Initialize a pointer to the list of watched users
+    int num_users = argc - 1;           // Calculate the number of users to watch
+    int interval = DEFAULT_INTERVAL;    // Initialize the interval to the default value
+
+    // Check if an interval is specified
+    if (argc > num_users + 1) {                                 // Check if an interval argument exists
+        interval = atoi(argv[num_users + 1]);                   // Convert the interval argument to an integer
+        if (interval <= 0) {                                    // Check if the interval is less than or equal to zero
+            fprintf(stderr, "Invalid interval specified\n");    // Print an error message for an invalid interval
+            return 1;                                           // Return 1 to indicate an error
         }
     }
 
 
+    struct utmp *ut;   // Declare a pointer to the utmp structure
+
+    while (1) {   // Infinite loop for continuous monitoring
+        // Open utmp file
+        setutent();    // Set the file position to the beginning of the utmp file
+
+        // Count number of currently logged in users
+        int num_curr_users = 0;                 // Initialize the count of currently logged in users
+        while ((ut = getutent()) != NULL) {     // Iterate through each entry in the utmp file
+            if (ut->ut_type == USER_PROCESS && is_user_watched(ut->ut_user, watched_users, num_users)) {
+                // Check if the entry represents a user process and if it's in the watched list
+                num_curr_users++;   // Increment the count of currently logged in users
+            }
+        }
 
 
+        // Allocate memory for the current user list
+        char **curr_users = malloc(num_curr_users * sizeof(char *));   // Allocate memory for the current user list
+        int index = 0;   // Initialize the index for populating the current user list
 
+        // Populate the current user list
+        setutent();                             // Set the file position to the beginning of the utmp file
+        while ((ut = getutent()) != NULL) {     // Iterate through each entry in the utmp file again
+            if (ut->ut_type == USER_PROCESS && is_user_watched(ut->ut_user, watched_users, num_users)) {
+                // Check if the entry represents a user process and if it's in the watched list
+                curr_users[index++] = strndup(ut->ut_user, UT_NAMESIZE - 1);   // Copy the user name to the current user list
+            }
+        }
 
-    while(1) {
-        dump_utmp_file(UTMP_FILE, argc, argv);
+        // Compare current and previous user lists and print changes
+        static char **prev_users = NULL;    // Declare a static pointer to the previous user list
+        static int prev_count = 0;          // Declare a static variable to store the count of previous users
+
+        if (prev_users != NULL) {           // Check if the previous user list is not NULL
+            check_user_changes(prev_users, prev_count, curr_users, num_curr_users);   // Compare and print user changes
+            free(prev_users);               // Free memory allocated for the previous user list
+        }
+
+        prev_users = curr_users;            // Update the previous user list with the current user list
+        prev_count = num_curr_users;        // Update the count of previous users with the count of current users
+
+        // Close utmp file
+        endutent();         // Close the utmp file and release associated resources
         printf("...\n");
-        sleep(sleep_timer);
-
+        // Sleep for the specified interval before checking again
+        sleep(interval);    // Pause the program execution for the specified interval
     }
 
-
-
-    return 0;
+    return 0;   // Return 0 to indicate successful program execution
 }
-
-//
-// utmp functions
-//
-
-void dump_utmp_file(char *filename, int argc, char* argv[]) { 
-    struct utmp utmp_record;
-    int file_descriptor;
-
-    file_descriptor = open(filename, 0);
-
-    if (file_descriptor == -1) {
-        perror(filename);
-        return;
-    }
-
-
-
-    int string_equal_flag;
-
-    while (read(file_descriptor, &utmp_record, sizeof(utmp_record)) == sizeof(utmp_record)) {
-        string_equal_flag = 1;
-        for(int i = 2; i < argc; i++) {
-            //printf("%li\n", strlen(argv[i]));
-
-            for(int j = 0; j < strlen(argv[i]); j++){
-                //printf("%d = %d\n", utmp_record.ut_user[j], argv[i][j]);
-
-                if(utmp_record.ut_user[j] != argv[i][j]) {
-                    string_equal_flag = 0;
-                    //printf("\n");
-                    break;
-                }
-            }
-            if(string_equal_flag) {
-                printf("Found user: \"%-8.8s\" in utmp file\n", utmp_record.ut_user);
-                show_utmp_record(&utmp_record); 
-            }
-        }
-        
-
-    }
-
-
-    close(file_descriptor);
-    
-}
-
-void show_utmp_record(struct utmp* record) {
-    printf("%-8.8s", record->ut_user);
-    //printf("%-12.12s ", record->ut_line);
-    //printf("%6d ", record->ut_pid);
-    printf("%4d %-12.12s ", record->ut_type, get_utmp_type_name(record->ut_type));
-    //printf("%12d ", record->ut_time);
-    //printf("%s ", record->ut_host);
-    putchar('\n');
-}
-
-char *utmp_type_names[] = {"EMPTY", "RUN_LVL", "BOOT_TIME", "OLD_TIME",
-                            "NEW_TIME", "INIT_PROCESS", "LOGIN_PROCESS",
-                            "USER_PROCESS", "DEAD_PROCESS", "ACCOUNTING"};
-
-
-char *get_utmp_type_name(int type_number) {
-    return utmp_type_names[type_number];
-}
-
