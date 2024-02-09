@@ -1,3 +1,12 @@
+/*
+Usage:
+
+$ gcc watch.c -o Watch
+$ ./Watch <user1> <user2> <userN> <sleep_interval>
+
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
