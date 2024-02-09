@@ -5,31 +5,13 @@
 #include <string.h>
 #include <time.h>
 
-#define DEFAULT_INTERVAL 2 // 5 minutes in seconds
 
 // Function to check if a user is in the list of watched users
-int is_user_watched(char *user, char **watched_users, int num_users) {
-    for (int i = 0; i < num_users; i++) {           // Loop through the watched users list
-        if (strcmp(user, watched_users[i]) == 0) {  // Compare the current user with the watched users
-            return 1;                               // Return 1 if the user is found in the list
-        }
-    }
-    return 0;                                       // Return 0 if the user is not found in the list
-}
+int is_user_watched(char *user, char **watched_users, int num_users);
 
 // Function to compare the current and previous user lists and print changes
-void check_user_changes(char **prev_users, int prev_count, char **curr_users, int curr_count) {
-    for (int i = 0; i < prev_count; i++) {                                  // Loop through the previous user list
-        if (!is_user_watched(prev_users[i], curr_users, curr_count)) {      // Check if the user logged out
-            printf("%s logged out\n", prev_users[i]);                       // Print the user who logged out
-        }
-    }
-    for (int i = 0; i < curr_count; i++) {                                  // Loop through the current user list
-        if (!is_user_watched(curr_users[i], prev_users, prev_count)) {      // Check if the user logged in
-            printf("%s logged in\n", curr_users[i]);                        // Print the user who logged in
-        }
-    }
-}
+void check_user_changes(char **prev_users, int prev_count, char **curr_users, int curr_count);
+
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {                                                                 // Check if the number of command-line arguments is less than 2
@@ -39,11 +21,13 @@ int main(int argc, char *argv[]) {
 
     char **watched_users = &argv[1];    // Initialize a pointer to the list of watched users
     int num_users = argc - 1;           // Calculate the number of users to watch
-    int interval = DEFAULT_INTERVAL;    // Initialize the interval to the default value
+    int interval = 300;    // Initialize the interval to the default value
 
     // Check if an interval is specified
-    if (argc > num_users + 1) {                                 // Check if an interval argument exists
-        interval = atoi(argv[num_users + 1]);                   // Convert the interval argument to an integer
+    if (atoi(argv[argc - 1]) > 0) {                                 // Check if an interval argument exists
+        interval = atoi(argv[argc-1]);                   // Convert the interval argument to an integer
+
+
         if (interval <= 0) {                                    // Check if the interval is less than or equal to zero
             fprintf(stderr, "Invalid interval specified\n");    // Print an error message for an invalid interval
             return 1;                                           // Return 1 to indicate an error
@@ -101,3 +85,29 @@ int main(int argc, char *argv[]) {
 
     return 0;   // Return 0 to indicate successful program execution
 }
+
+
+// Function to check if a user is in the list of watched users
+int is_user_watched(char *user, char **watched_users, int num_users) {
+    for (int i = 0; i < num_users; i++) {           // Loop through the watched users list
+        if (strcmp(user, watched_users[i]) == 0) {  // Compare the current user with the watched users
+            return 1;                               // Return 1 if the user is found in the list
+        }
+    }
+    return 0;                                       // Return 0 if the user is not found in the list
+}
+
+// Function to compare the current and previous user lists and print changes
+void check_user_changes(char **prev_users, int prev_count, char **curr_users, int curr_count) {
+    for (int i = 0; i < prev_count; i++) {                                  // Loop through the previous user list
+        if (!is_user_watched(prev_users[i], curr_users, curr_count)) {      // Check if the user logged out
+            printf("%s logged out\n", prev_users[i]);                       // Print the user who logged out
+        }
+    }
+    for (int i = 0; i < curr_count; i++) {                                  // Loop through the current user list
+        if (!is_user_watched(curr_users[i], prev_users, prev_count)) {      // Check if the user logged in
+            printf("%s logged in\n", curr_users[i]);                        // Print the user who logged in
+        }
+    }
+}
+
