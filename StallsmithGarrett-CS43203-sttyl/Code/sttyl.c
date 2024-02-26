@@ -3,34 +3,51 @@
 #include <unistd.h>
 #include <termios.h>
 #include <string.h>
+#include <stdbool.h>
 
 void print_usage() {
-    printf("Usage: mystty [OPTION]...\n");
-    printf("Print or change terminal settings.\n");
+    printf("Usage: ./sttyl [OPTION]...\n");
     printf("\nOptions:\n");
     printf("  -a, --all           print all current settings\n");
     printf("  -e, --erase=CHAR    set erase CHAR (default is 'erase')\n");
+    printf("  -icrnl              turn on icrnl\n");
+    printf("  -onlcr              turn on onlcr\n");
+    printf("  -echo               turn on echo\n");
+    printf("  -echoe              turn on echoe\n");
+    printf("  -olcuc              turn on olcuc\n");
+    printf("  -tabs               turn on tabs\n");
+    printf("  -icanon             turn on icanon\n");
+    printf("  -isig               turn on isig\n");
     printf("  -h, --help          display this help and exit\n");
-    printf("  -v, --version       output version information and exit\n");
 }
 
 void print_version() {
     printf("mystty version 1.0\n");
 }
 
-void print_settings(struct termios* term) {
-    printf("Speed: %d\n", (int) cfgetispeed(term));
+void print_settings(struct termios *term) {
+    printf("Speed: %d\n", (int)cfgetispeed(term));
     printf("Erase character: %c\n", term->c_cc[VERASE]);
-    // Add more settings if needed
+    printf("icrnl: %s\n", (term->c_iflag & ICRNL) ? "on" : "off");
+    printf("onlcr: %s\n", (term->c_oflag & ONLCR) ? "on" : "off");
+    printf("echo: %s\n", (term->c_lflag & ECHO) ? "on" : "off");
+    printf("echoe: %s\n", (term->c_lflag & ECHOE) ? "on" : "off");
+    printf("olcuc: %s\n", (term->c_oflag & OLCUC) ? "on" : "off");
+    printf("icanon: %s\n", (term->c_lflag & ICANON) ? "on" : "off");
+    printf("isig: %s\n", (term->c_lflag & ISIG) ? "on" : "off");
 }
 
 int main(int argc, char *argv[]) {
     struct termios term;
     char *erase_char = NULL;
 
+    if(argc) {
+        print_settings(&term);
+    }
+
     // Parse arguments
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--all") == 0) {
+        if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--all") == 0 || argc == 1) {
             tcgetattr(STDIN_FILENO, &term);
             print_settings(&term);
             return 0;
@@ -52,9 +69,54 @@ int main(int argc, char *argv[]) {
             print_version();
             return 0;
         } else {
-            fprintf(stderr, "Invalid option: %s\n", argv[i]);
-            print_usage();
-            return 1;
+            bool enable = true;
+            char *option = argv[i];
+
+            if (option[0] == '-') {
+                enable = false;
+                option++;
+            }
+
+            if (strcmp(option, "icrnl") == 0) {
+                if (enable)
+                    term.c_iflag |= ICRNL;
+                else
+                    term.c_iflag &= ~ICRNL;
+            } else if (strcmp(option, "onlcr") == 0) {
+                if (enable)
+                    term.c_oflag |= ONLCR;
+                else
+                    term.c_oflag &= ~ONLCR;
+            } else if (strcmp(option, "echo") == 0) {
+                if (enable)
+                    term.c_lflag |= ECHO;
+                else
+                    term.c_lflag &= ~ECHO;
+            } else if (strcmp(option, "echoe") == 0) {
+                if (enable)
+                    term.c_lflag |= ECHOE;
+                else
+                    term.c_lflag &= ~ECHOE;
+            } else if (strcmp(option, "olcuc") == 0) {
+                if (enable)
+                    term.c_oflag |= OLCUC;
+                else
+                    term.c_oflag &= ~OLCUC;
+            } else if (strcmp(option, "icanon") == 0) {
+                if (enable)
+                    term.c_lflag |= ICANON;
+                else
+                    term.c_lflag &= ~ICANON;
+            } else if (strcmp(option, "isig") == 0) {
+                if (enable)
+                    term.c_lflag |= ISIG;
+                else
+                    term.c_lflag &= ~ISIG;
+            } else {
+                fprintf(stderr, "Invalid option: %s\n", argv[i]);
+                print_usage();
+                return 1;
+            }
         }
     }
 
