@@ -9,18 +9,23 @@
 void setNonBlockingMode() {
     struct termios ttystate;
     tcgetattr(STDIN_FILENO, &ttystate);
-    ttystate.c_lflag &= ~(ICANON | ECHO); // Turn off canonical mode and echo
+    // Turn off canonical mode and echo
+    ttystate.c_lflag &= ~(ICANON | ECHO);
     ttystate.c_cc[VMIN] = 0;
     ttystate.c_cc[VTIME] = 0;
     tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
 }
+
+// Gameplay constants
+// Change these to change aspects of the game
 #define TOPEDGE 0
 #define LEFTEDGE 0
-#define RIGHTEDGE 40
+#define RIGHTEDGE 70
 #define BOTTOMEDGE 21
 #define PADDLE_SIZE 6
-#define BALL_MAGNITUDE 1
 
+// Vectorization of the movement
+// Considering magnitude and direction of x, y coordinates separately
 struct ball_vector {
     int x;
     int y;
@@ -32,8 +37,7 @@ struct paddle {
     int y;
 };
 
-
-
+// Visual representation of walls
 void draw_walls() {
     char horizontal_wall_piece[] = "-";
     char vertical_wall_piece[] = "|";
@@ -51,6 +55,7 @@ void draw_walls() {
     }
 }
 
+// Visutal representation of paddle
 void draw_paddle(struct paddle *paddle) {
     for(int i = paddle->y; i < PADDLE_SIZE + paddle->y; i++) {
         move(i, RIGHTEDGE);
@@ -58,11 +63,25 @@ void draw_paddle(struct paddle *paddle) {
     }
 }
 
+// Visual representation of ball
 void draw_ball(struct ball_vector *ball) {
     move(ball->y, ball->x);
     addstr("O");
 }
 
+// Tells the user how many serves they have left
+void draw_serves(int serves) {
+    move(BOTTOMEDGE + 3, RIGHTEDGE/4);
+    char c_serves[10];
+    sprintf(c_serves, "%d", serves);
+
+    char serves_msg[] = "Serves remaning: ";
+    addstr(serves_msg);
+    addstr(c_serves);
+}
+
+// Makes sure the paddle stays in the game
+// Prevents user from moving the paddle too far above or below the game
 void paddle_bounds(struct paddle *paddle) {
     if(paddle->y < TOPEDGE + 1) {
         paddle->y = TOPEDGE + 1;
@@ -72,11 +91,12 @@ void paddle_bounds(struct paddle *paddle) {
     }
 }
 
-
+// Apply magnitude to ball coordinates
 void move_ball(struct ball_vector *ball) {
     ball->x = ball->x + ball->x_mag;
     ball->y = ball->y + ball->y_mag;
 
+    // If the ball hits a wall invert the direction
     if(ball->y < TOPEDGE + 2) {
         ball->y_mag = 0 - ball->y_mag;
     }
@@ -88,6 +108,7 @@ void move_ball(struct ball_vector *ball) {
     }
 }
 
+// Moves the paddle using j and k keys
 void move_paddle(struct paddle *paddle, char c) {
     if (c == 'j') {
         paddle->y++;
@@ -98,6 +119,9 @@ void move_paddle(struct paddle *paddle, char c) {
 
 }
 
+// Check if ball and paddle hit, if not return -1
+// -1 results in lost serve
+// Otherwise, ball and paddle hit, invert ball direction
 int check_collision(struct ball_vector *ball, struct paddle *paddle) {
     if(ball->x > RIGHTEDGE - 2) {
         int difference = ball->y - paddle->y;
@@ -110,10 +134,10 @@ int check_collision(struct ball_vector *ball, struct paddle *paddle) {
     return 1;
 }
 
-int main() {
-    initscr();
-    srand(time(NULL));
-    setNonBlockingMode();
+// Reseve the ball after a loss state
+void reserve(struct ball_vector *ball) {
+    ball->x = RIGHTEDGE - 2;
+    ball->y = TOPEDGE + rand()%BOTTOMEDGE;
 
     int init_x_mag = 0 - rand()%3;
     while (init_x_mag >= 0) {
@@ -125,12 +149,38 @@ int main() {
         init_y_mag = rand()%3;
     }
 
+    ball->x_mag = init_x_mag;
+    ball->y_mag = init_y_mag;
+
+}
+
+int main() {
+    initscr();
+    srand(time(NULL));
+
+    // Allows us to receive user input
+    setNonBlockingMode();
+
+    // Initialize vectors to random speed between 1-2
+    int init_x_mag = 0 - rand()%3;
+    while (init_x_mag >= 0) {
+        init_x_mag = 0 - rand()%3;
+    }
+    
+    int init_y_mag = rand()%3;
+    while (init_y_mag <= 0) {
+        init_y_mag = rand()%3;
+    }
+
+    int serves = 3;
+
+    // This keeps track of user input
     char c;
 
-    struct ball_vector ball = {RIGHTEDGE, TOPEDGE + rand()%BOTTOMEDGE, init_x_mag, init_y_mag};
+    struct ball_vector ball = {RIGHTEDGE - 2, TOPEDGE + rand()%BOTTOMEDGE, init_x_mag, init_y_mag};
     struct paddle paddle = {1};
 
-    while(c != 'q') {
+    while(c != 'q' && serves > 0) {
         if (read(STDIN_FILENO, &c, 1) == 1) {
             move_paddle(&paddle, c);
         }
@@ -140,23 +190,27 @@ int main() {
         move_ball(&ball);
 
         if(check_collision(&ball, &paddle) == -1) {
-            c = 'q';
+            reserve(&ball);
+            serves--;
         }
+
+        draw_serves(serves);
 
         draw_walls();
         draw_paddle(&paddle);
         draw_ball(&ball);
 
         refresh();
+
+        // Game updates every 1/5 second
         usleep(200000);
         clear();
 
     }
 
-
+    // Gracefully exit and return to normal terminal
     endwin();
 
-    printf("Ball pos: %i\nPaddle pos: %i\nDifference (more than 6 or less than 0 -> loss): %i\n", ball.y, paddle.y, ball.y-paddle.y);
 
     return 0;
 }
