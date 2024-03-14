@@ -20,9 +20,9 @@ void setNonBlockingMode() {
 // Change these to change aspects of the game
 #define TOPEDGE 0
 #define LEFTEDGE 0
-#define RIGHTEDGE 70
+#define RIGHTEDGE 40
 #define BOTTOMEDGE 21
-#define PADDLE_SIZE 6
+#define PADDLE_SIZE 3
 
 // Vectorization of the movement
 // Considering magnitude and direction of x, y coordinates separately
@@ -75,7 +75,7 @@ void draw_serves(int serves) {
     char c_serves[10];
     sprintf(c_serves, "%d", serves);
 
-    char serves_msg[] = "Serves remaning: ";
+    char serves_msg[] = "Serves remaining: ";
     addstr(serves_msg);
     addstr(c_serves);
 }
@@ -161,10 +161,10 @@ int main() {
     // Allows us to receive user input
     setNonBlockingMode();
 
-    // Initialize vectors to random speed between 1-2
-    int init_x_mag = 0 - rand()%3;
+    // Initialize vectors to random speed between 1-4
+    int init_x_mag = 0 - rand()%5;
     while (init_x_mag >= 0) {
-        init_x_mag = 0 - rand()%3;
+        init_x_mag = 0 - rand()%5;
     }
     
     int init_y_mag = rand()%3;
