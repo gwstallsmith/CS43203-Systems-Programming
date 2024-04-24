@@ -38,12 +38,16 @@ struct paddle {
 };
 
 // Visual representation of walls
-void draw_walls() {
+void draw_walls(char side) {
     char horizontal_wall_piece[] = "-";
     char vertical_wall_piece[] = "|";
 
     for(int y = TOPEDGE; y <= BOTTOMEDGE; y++) {
-        move(y, LEFTEDGE);
+        if(side == 'L') {
+            move(y, RIGHTEDGE);
+        } else if(side == 'R')  {
+            move(y, LEFTEDGE);
+        }
         addstr(vertical_wall_piece);
     }
 
@@ -56,9 +60,15 @@ void draw_walls() {
 }
 
 // Visutal representation of paddle
-void draw_paddle(struct paddle *paddle) {
+void draw_paddle(struct paddle *paddle, char side) {
     for(int i = paddle->y; i < PADDLE_SIZE + paddle->y; i++) {
-        move(i, RIGHTEDGE);
+        if(side == 'L') {
+            move(i, LEFTEDGE);
+
+        } else if(side == 'R') {
+            move(i, RIGHTEDGE);
+
+        }
         addstr("#");
     }
 }
@@ -92,9 +102,7 @@ void paddle_bounds(struct paddle *paddle) {
 }
 
 // Apply magnitude to ball coordinates
-void move_ball(struct ball_vector *ball) {
-    ball->x = ball->x + ball->x_mag;
-    ball->y = ball->y + ball->y_mag;
+void move_ball(struct ball_vector *ball, char side) {
 
     // If the ball hits a wall invert the direction
     if(ball->y < TOPEDGE + 2) {
@@ -103,9 +111,15 @@ void move_ball(struct ball_vector *ball) {
     if(ball->y > BOTTOMEDGE - 2) {
         ball->y_mag = 0 - ball->y_mag;
     }
-    if(ball->x < LEFTEDGE + 2) {
+    if(ball->x < LEFTEDGE + 1 && side == 'R') {
+        ball->x_mag = 0 - ball->x_mag;
+    } else if (ball->x > RIGHTEDGE - 1 && side == 'L') {
         ball->x_mag = 0 - ball->x_mag;
     }
+
+    ball->x = ball->x + ball->x_mag;
+    ball->y = ball->y + ball->y_mag;
+
 }
 
 // Moves the paddle using j and k keys
@@ -122,28 +136,55 @@ void move_paddle(struct paddle *paddle, char c) {
 // Check if ball and paddle hit, if not return -1
 // -1 results in lost serve
 // Otherwise, ball and paddle hit, invert ball direction
-int check_collision(struct ball_vector *ball, struct paddle *paddle) {
-    if(ball->x > RIGHTEDGE - 2) {
-        int difference = ball->y - paddle->y;
-        if(difference > PADDLE_SIZE + 1 || difference < 0) {
-            return -1;
-        } else {
-            ball->x_mag = 0 - ball->x_mag;
+int check_collision(struct ball_vector *ball, struct paddle *paddle, char side) {
+    if(side == 'R') {
+        if(ball->x > RIGHTEDGE - 1) {
+            int difference = ball->y - paddle->y;
+            if(difference > PADDLE_SIZE + 1 || difference < 0) {
+                return -1;
+            } else {
+                ball->x_mag = 0 - ball->x_mag;
+            }
         }
+    } else if(side == 'L') {
+        if(ball->x < LEFTEDGE + 1) {
+            int difference = ball->y - paddle->y;
+            if(difference > PADDLE_SIZE + 1 || difference < 0) {
+                return -1;
+            } else {
+                ball->x_mag = 0 - ball->x_mag;
+            }
+        }
+
     }
+
     return 1;
 }
 
 // Reseve the ball after a loss state
-void reserve(struct ball_vector *ball) {
-    ball->x = RIGHTEDGE - 2;
+void reserve(struct ball_vector *ball, char side) {
     ball->y = TOPEDGE + rand()%BOTTOMEDGE;
 
-    int init_x_mag = 0 - rand()%3;
-    while (init_x_mag >= 0) {
+    int init_x_mag;
+
+    if(side == 'L') {
+        ball->x = LEFTEDGE + 2;
+
+        init_x_mag = 0 + rand()%3;
+        while (init_x_mag >= 0) {
+            init_x_mag = 0 + rand()%3;
+        }
+        
+    } else if (side == 'R') {
+
+        ball->x = RIGHTEDGE - 2;
         init_x_mag = 0 - rand()%3;
+        while (init_x_mag >= 0) {
+            init_x_mag = 0 - rand()%3;
+        }
+        
     }
-    
+
     int init_y_mag = rand()%3;
     while (init_y_mag <= 0) {
         init_y_mag = rand()%3;
@@ -154,7 +195,14 @@ void reserve(struct ball_vector *ball) {
 
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    if(argc < 2) {
+        perror("Pick a side of the court to play on.\nL for left\nR for right\n");
+        return 0;
+    }
+
+    char side = *argv[1];
+
     initscr();
     srand(time(NULL));
 
@@ -187,17 +235,17 @@ int main() {
 
         paddle_bounds(&paddle);
         
-        move_ball(&ball);
+        move_ball(&ball, side);
 
-        if(check_collision(&ball, &paddle) == -1) {
-            reserve(&ball);
+        if(check_collision(&ball, &paddle, side) == -1) {
+            reserve(&ball, side);
             serves--;
         }
 
         draw_serves(serves);
 
-        draw_walls();
-        draw_paddle(&paddle);
+        draw_walls(side);
+        draw_paddle(&paddle, side);
         draw_ball(&ball);
 
         refresh();
